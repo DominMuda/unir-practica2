@@ -18,6 +18,7 @@ terraform-scripts/*.tfvars
 # Ignore override files as they are usually used to override resources locally and so
 # are not checked in
 terraform-scripts/override.tf
+terraform-scripts/*lock.hcl
 terraform-scripts/override.tf.json
 terraform-scripts/*_override.tf
 terraform-scripts/*_override.tf.json
