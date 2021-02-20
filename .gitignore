@@ -34,3 +34,5 @@ terraform-scripts/credentials.tf
 # Ignore CLI configuration files
 terraform-scripts/.terraformrc
 terraform-scripts/terraform.rc
+
+ansible-scripts/inventory
