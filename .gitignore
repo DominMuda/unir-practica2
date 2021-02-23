@@ -35,5 +35,5 @@ terraform-scripts/credentials.tf
 terraform-scripts/.terraformrc
 terraform-scripts/terraform.rc
 
-ansible-scripts/inventory
-ansible-scripts/notes
+ansible-playbooks/inventory
+ansible-playbooks/notes
