@@ -1,0 +1,62 @@
+---
+- name: Configuración general de las máquinas
+  hosts: all
+  remote_user: adminUsername
+  become: true
+  tasks:
+    - name: Se comprueba que se llega a la máquina de NFS
+      command: showmount -e nfs.acme.es
+
+    - name: Activación de 'transparent masquerading'
+      shell: |
+        modprobe br_netfilter
+        firewall-cmd --add-masquerade --permanent
+        firewall-cmd --reload
+
+    #Configuración de cortafuegos
+    - name: Subiendo /etc/sysctl.d/k8s.conf
+      copy:
+        src: k8s.conf
+        dest: /etc/sysctl.d/k8s.conf
+        owner: adminUsername
+        group: adminUsername
+        mode: 0644
+
+    - name: Se aplica la configuración
+      command: sysctl --system
+
+    - name: Desactivación de swap
+      shell: |
+        swapoff  -a
+        free -m
+        sed -i '/swap/d' /etc/fstab
+
+    - name: Instalación de Docker
+      shell: |
+        dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+        dnf install docker-ce-19.03.14-3.el8 containerd.io -y
+
+    - name: Activar servicio docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    #Configuración de Kubernetes
+    - name: Configuración de repositorios de Kubernetes
+      copy:
+        src: kubernetes.repo
+        dest: /etc/yum.repos.d/kubernetes.repo
+        owner: adminUsername
+        group: adminUsername
+        mode: 0644
+
+    - name: Instalación de Kubernetes
+      shell: |
+        dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+
+    - name: Activar servicio kubelet
+      systemd:
+        name: kubelet
+        state: started
+        enabled: yes

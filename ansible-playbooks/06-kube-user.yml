@@ -1,0 +1,38 @@
+---
+- name: Usuario administrador
+  hosts: master
+  remote_user: adminUsername
+  become: true
+  vars:
+    password: pass
+  tasks:
+
+  - name: Añadir usuario kubeadmin
+    user: 
+      name: kubeadmin
+      create_home: yes
+
+  - name: Crear directorio Kubernetes para usuario 
+    file:
+      path: /home/kubeadmin/.kube
+      state: directory
+      mode: '0755'
+
+  - name: Copiar archivo de admin de kubernetes
+    copy:
+      src: /etc/kubernetes/admin.conf
+      dest: /home/kubeadmin/.kube/config
+      owner: kubeadmin
+      remote_src: yes
+
+  - name: Añadir nuevo usuario a sudoers
+    file: 
+      path: /etc/sudoers.d/kubeadmin
+      state: touch
+
+  - name: Añadiendo contenido a sudoers
+    copy:
+      dest: /etc/sudoers.d/kubeadmin
+      content: |
+        ALL            ALL = (ALL) NOPASSWD: ALL
+        

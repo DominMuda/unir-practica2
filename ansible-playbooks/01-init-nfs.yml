@@ -13,8 +13,19 @@
         dnf install chrony -y
         systemctl enable chronyd
         systemctl start chronyd
+        systemctl enable firewalld
+        systemctl start firewalld
         timedatectl set-ntp true
         sed -i s/=enforcing/=disabled/g /etc/selinux/config
+
+    - name: Iniciar servicios chronyd y firewalld
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      with_items:
+        - chronyd
+        - firewalld
 
     - name: Instalar nfs-utils nfs4-acl-tools y wget
       dnf:
@@ -37,52 +48,10 @@
       command: bash -c 'cat /etc/hosts2 >> /etc/hosts'
 
 - name: Configuración NFS
-  hosts: nfs
+  hosts: master
   remote_user: adminUsername
   become: true
   tasks:
-    - name: Mostrar listado de Discos
-      command: lsblk
-      register: disklist
-
-    - debug: msg="{{ disklist.stdout }}"
-
-    #Creación de Volume Group sobre disco montado
-    - name: Creación de Volume Group para NFS
-      shell: |
-        pvcreate /dev/sdc
-        vgcreate data_vg /dev/sdc
-
-    - name: Mostrar listado de Volume Groups
-      command: vgdisplay data_vg
-      register: vg
-
-    - debug: msg="{{ vg.stdout }}"
-
-    #Creación de Logical Volume sobre disco montado
-    - name: Creación de Logical Volume para NFS
-      command: lvcreate -l+2559 -n nfs_lv /dev/data_vg
-
-    - name: Mostrar listado de Logical Volumes
-      command: lvs
-      register: lv
-
-    - debug: msg="{{ lv.stdout }}"
-
-    #Creación de filesystem tipo XFS
-    - name: Creación de filesystem de tipo XFS
-      shell: |
-        mkfs.xfs /dev/data_vg/nfs_lv
-        mkdir /srv/nfs
-        echo "/dev/data_vg/nfs_lv        /srv/nfs                xfs     defaults        0 0" >> /etc/fstab
-        mount -a
-
-    - name: Mostrar discos montados
-      command: df -hP
-      register: df
-
-    - debug: msg="{{ df.stdout }}"
-
     #Encendido de servicio NFS
     - name: Instalar nfs-utils y net-tools
       dnf:
@@ -92,9 +61,10 @@
         state: latest
 
     - name: Arrancamos el servicio de NFS
-      shell: |
-        systemctl enable nfs-server
-        systemctl start nfs-server
+      systemd:
+        name: nfs-server
+        state: started
+        enabled: yes
 
     #Configuración de servicio NFS
     - name: Subiendo /etc/exports

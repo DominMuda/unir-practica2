@@ -7,12 +7,12 @@ variable "location" {
 variable "vm_size" {
   type = string
   description = "Tamaño de la máquina virtual"
-  default = "Standard_D1_v2" # 3.5 GB, 1 CPU 
+  default = "Standard_D2_v2" # 3.5 GB, 1 CPU 
 }
 
 variable "vms" {
   description = "Máquinas virtuales que se van a crear"
   type = list(string)
-  #default= ["nfs", "master", "worker01"]
-  default= ["nfs"]
+  default= ["master", "worker01"]
+  #default= ["nfs"]
 }

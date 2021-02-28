@@ -43,19 +43,18 @@ resource "azurerm_linux_virtual_machine" "myVM" {
     }
 }
 
-resource "azurerm_managed_disk" "nfsdata" {
-    name                 = "nfs-data-disk1"
-    location             = azurerm_resource_group.rg.location
-    resource_group_name  = azurerm_resource_group.rg.name
-    storage_account_type = "Standard_LRS"
-    create_option        = "Empty"
-    disk_size_gb         = 10
-}
-
-resource "azurerm_virtual_machine_data_disk_attachment" "example" {
-    count = length(var.vms)
-    managed_disk_id    = azurerm_managed_disk.nfsdata.id
-    virtual_machine_id = azurerm_linux_virtual_machine.myVM[0].id
-    lun                = "10"
-    caching            = "ReadWrite"
-}
+#resource "azurerm_managed_disk" "nfsdata" {
+#    name                 = "nfs-data-disk1"
+#    location             = azurerm_resource_group.rg.location
+#    resource_group_name  = azurerm_resource_group.rg.name
+#    storage_account_type = "Standard_LRS"
+#    create_option        = "Empty"
+#    disk_size_gb         = 10
+#}
+#
+#resource "azurerm_virtual_machine_data_disk_attachment" "example" {
+#    managed_disk_id    = azurerm_managed_disk.nfsdata.id
+#    virtual_machine_id = azurerm_linux_virtual_machine.myVM[0].id
+#    lun                = "10"
+#    caching            = "ReadWrite"
+#}

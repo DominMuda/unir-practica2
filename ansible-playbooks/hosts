@@ -1,4 +1,3 @@
 10.0.1.10 nfs nfs.acme.es
-10.0.1.11 master master.acme.es
-10.0.1.12 worker01 worker01.acme.es
-10.0.1.13 worker02 worker02.acme.es
+10.0.1.10 master master.acme.es
+10.0.1.11 worker01 worker01.acme.es

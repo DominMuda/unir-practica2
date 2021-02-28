@@ -36,4 +36,4 @@ terraform-scripts/.terraformrc
 terraform-scripts/terraform.rc
 
 ansible-playbooks/inventory
-ansible-playbooks/notes
+ansible-playbooks/*notes

@@ -1,0 +1,38 @@
+---
+- name: Configuración de Kubernetes en master
+  hosts: master
+  remote_user: adminUsername
+  become: true
+  tasks:
+    #Configuración de Kubernetes en master
+    - name: Configuramos el firewall para Kubernetes
+      shell: |
+        firewall-cmd --permanent --add-port=6443/tcp
+        firewall-cmd --permanent --add-port=2379-2380/tcp
+        firewall-cmd --permanent --add-port=10250/tcp
+        firewall-cmd --permanent --add-port=10251/tcp
+        firewall-cmd --permanent --add-port=10252/tcp
+        firewall-cmd --permanent --add-port=10255/tcp
+        firewall-cmd --reload
+
+    - name: Se configura kubeadm
+      command: kubeadm config images pull
+
+    - name: Permitir acceso desde los workers y localhost
+      shell: |
+        firewall-cmd --permanent --add-rich-rule 'rule family=ipv4 source address=10.0.1.11/32 accept'
+        firewall-cmd --zone=public --permanent --add-rich-rule 'rule family=ipv4 source address=172.17.0.0/16 accept'
+        firewall-cmd --reload
+
+    - name: Definimos la red de los PODs
+      shell: kubeadm init --pod-network-cidr 10.1.0.0/16 | tail -2
+      register: kubeadm_cmd
+      
+    - debug: msg="{{ kubeadm_cmd.stdout }}"
+
+    - name: Autorizamos al usuario root acceder al cluster para terminar la configuración
+      shell: |
+        mkdir -p /root/.kube
+        cp -i /etc/kubernetes/admin.conf /root/.kube/config
+        chown $(id -u):$(id -g) /root/.kube/config
+        kubectl get nodes

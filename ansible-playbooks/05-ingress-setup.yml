@@ -1,0 +1,9 @@
+---
+- name: Configuración general de las máquinas
+  hosts: master
+  remote_user: adminUsername
+  become: true
+  tasks:
+    #Instalación de Ingress Controller
+    - name: Instalamos haproxy
+      command: kubectl apply -f https://raw.githubusercontent.com/haproxytech/kubernetes-ingress/v1.5/deploy/haproxy-ingress.yaml

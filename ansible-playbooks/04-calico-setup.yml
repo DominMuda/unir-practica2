@@ -1,0 +1,40 @@
+---
+- name: Instalación de SDN
+  hosts: master
+  remote_user: adminUsername
+  become: true
+  tasks:
+    #Instalación de SDN
+    - name: Instalamos el operador de Trigera
+      shell: |
+        kubectl create -f https://docs.projectcalico.org/manifests/tigera-operator.yaml
+
+    - name: Descargamos calico yaml
+      get_url:
+        url: https://docs.projectcalico.org/manifests/custom-resources.yaml
+        dest: /home/adminUsername
+        mode: 0440
+
+    - name: Instalamos el operador de Trigera
+      shell: |
+        sed -i -E "s/(cidr: ).*/\110.1.0.0\/16/" custom-resources.yaml
+        kubectl apply -f custom-resources.yaml
+        kubectl taint nodes --all node-role.kubernetes.io/master-
+
+- name: Configuración general de las máquinas
+  hosts: all !master
+  remote_user: adminUsername
+  become: true
+  vars_prompt:
+  - name: kubeadm_url
+    prompt: Introduce la URL para añadir el worker al cluster de PODs
+    private: no
+  tasks:
+    #Configuramos los workers
+    - name: Apertura de puertos
+      shell: |
+        firewall-cmd --zone=public --permanent --add-port={10250,30000-32767}/tcp
+        firewall-cmd --reload
+
+    - name: Añadimos worker al clúster
+      command: "{{ kubeadm_url }}"
