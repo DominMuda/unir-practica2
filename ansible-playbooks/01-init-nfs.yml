@@ -11,12 +11,6 @@
       shell: |
         timedatectl set-timezone Europe/Madrid 
         dnf install chrony -y
-        systemctl enable chronyd
-        systemctl start chronyd
-        systemctl enable firewalld
-        systemctl start firewalld
-        timedatectl set-ntp true
-        sed -i s/=enforcing/=disabled/g /etc/selinux/config
 
     - name: Iniciar servicios chronyd y firewalld
       service:
@@ -26,6 +20,11 @@
       with_items:
         - chronyd
         - firewalld
+
+    - name: Tareas previas a la configuración
+      shell: |
+        timedatectl set-ntp true
+        sed -i s/=enforcing/=disabled/g /etc/selinux/config
 
     - name: Instalar nfs-utils nfs4-acl-tools y wget
       dnf:
@@ -38,7 +37,7 @@
     #Configuración de servicio NFS
     - name: Subiendo /etc/hosts con nombres de hosts
       copy:
-        src: /home/domingo/hosts
+        src: hosts
         dest: /etc/hosts2
         owner: adminUsername
         group: adminUsername
@@ -69,16 +68,23 @@
     #Configuración de servicio NFS
     - name: Subiendo /etc/exports
       copy:
-        src: /home/domingo/exports
         dest: /etc/exports 
-        owner: adminUsername
-        group: adminUsername
-        mode: 0644
+        content: |
+          /srv/nfs	10.0.1.11(rw,sync)
+
+    - name: Crear srv nfs 
+      file:
+        path: /srv/nfs
+        state: directory
+        mode: '0755'
 
     - name: Aplicamos la configuración de NFS
       shell: |
         exportfs -r
         exportfs -s
+      register: nfscmd
+      
+    - debug: msg="{{ nfscmd.stdout }}"
 
     #Configuración de firewall
     - name: Apertura de puertos en el firewall

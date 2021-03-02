@@ -1,0 +1,43 @@
+---
+- name: Despliegue de una aplicación simple
+  hosts: master
+  remote_user: kubeadmin
+  become: true
+  tasks:
+    #Instalación de Ingress Controller
+    - name: Creación de volumenes
+      command: kubectl create namespace webapp-volumes
+
+    - name: Descargamos nfs-pv yaml
+      get_url:
+        url: https://raw.githubusercontent.com/jadebustos/devopslabs/master/labs-k8s/webapp-volumes/nfs-pv.yaml
+        dest: /home/kubeadmin
+        mode: 0440
+
+    - name: Creacion de PV
+      shell: |
+        chdir=/home/kubeadmin
+        sed -i -E "s/(server: ).*/\110.0.1.10/" nfs-pv.yaml
+        kubectl apply -f nfs-pv.yaml
+
+    - name: Descargamos nfs-pvc yaml
+      get_url:
+        url: https://raw.githubusercontent.com/jadebustos/devopslabs/master/labs-k8s/webapp-volumes/nfs-pvc.yaml
+        dest: /home/kubeadmin
+        mode: 0440
+
+    - name: Creacion de PVC
+      shell: |
+        chdir=/home/kubeadmin
+        kubectl apply -f nfs-pvc.yaml
+
+    - name: Descargamos webapp-volumes yaml
+      get_url:
+        url: https://raw.githubusercontent.com/jadebustos/devopslabs/master/labs-k8s/webapp-volumes/webapp-volumes.yaml
+        dest: /home/kubeadmin
+        mode: 0440
+
+    - name: Creacion de Webapp
+      shell: |
+        chdir=/home/kubeadmin
+        kubectl apply -f webapp-volumes.yaml
